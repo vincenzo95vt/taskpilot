@@ -1,0 +1,15 @@
+# Entorno virtual
+venv/
+.env
+
+# Archivos de configuración local
+*.log
+__pycache__/
+*.pyc
+
+# Configuración de IDEs
+.vscode/
+.idea/
+
+# Otros (si usas notebooks o pruebas locales)
+*.ipynb_checkpoints
