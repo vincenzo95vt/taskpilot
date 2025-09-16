@@ -7,13 +7,23 @@ openai_api = os.getenv("OPENAI_API_KEY")
 
 client = OpenAI(api_key=openai_api)
 
-response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[
-        {"role": "user", "content": "Escribe un tuit objetivo sobre la subida del precio del petróleo."}
-    ],
-    max_tokens=120,
-    temperature=0.5
-)
+def rewrite_news(title: str, description: str = "") -> str:
+    title_part = f"Titular: {title}" if title else ""
 
-print(response.choices[0].message.content)
+    prompt = f"""
+    Eres un periodista profesional y trabajas para mi periodico y necesitamos que escribas un tuit sobre esta noticia con una visión conservadora y profesional:
+
+    {title_part}
+    Descripción: {description}
+    El tuit debe ser conciso, claro y atractivo, con un máximo de 280 caracteres. No pongas hashtags ni emojis. y bajo ningun concepto te pases de esos 280 caracteres
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=120,
+        temperature=0.5
+    )
+    return response.choices[0].message.content
