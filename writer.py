@@ -11,13 +11,12 @@ def rewrite_news(title: str, description: str = "") -> str:
     title_part = f"Titular: {title}" if title else ""
 
     prompt = f"""
-    Eres un periodista profesional y trabajas para mi periodico y necesitamos que escribas un tuit sobre esta noticia con una visión conservadora y profesional:
+    Eres un periodista profesional y trabajas para mi periodico y necesitamos que hagas un resumen de esta noticia con una visión conservadora y profesional:
 
     {title_part}
     Descripción: {description}
-    El tuit debe ser conciso, claro y atractivo, con un máximo de 280 caracteres. No pongas hashtags ni emojis. y bajo ningun concepto te pases de esos 280 caracteres
+    El tuit debe ser conciso, claro y atractivo, con un máximo de 1120 caracteres. No pongas hashtags ni emojis. y bajo ningun concepto te pases de esos 1120 caracteres
     """
-
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[

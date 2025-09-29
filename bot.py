@@ -1,42 +1,37 @@
 from rss_client import get_rss_news
 from writer import rewrite_news
-from twitter_client import post_tweet
-from google_client import google_sheet_data
+from twitter_client import post_tweet, post_thread
+from google_client import get_unpublished_urls, sync_rss_to_sheet, get_next_unpublished, mark_as_published
 from scraper import extract_text_from_url
-import random
+from notifier import notify
+import traceback
 
 RSS_FEED = "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada" 
-USE_GOOGLE_SHEETS = True
 def job():
-    if USE_GOOGLE_SHEETS:
-        rows = google_sheet_data()
-        print(rows)
-        if not rows:
-            print("No URLs found in Google Sheets.")
-            articles = get_rss_news(RSS_FEED,limit=5)
-            sources = [{'link': a['link'], 'title': a['title'],  'description': a['description']} for a in articles]
+    try:
+        sync_rss_to_sheet(RSS_FEED, limit= 5)
+        row, url, ws = get_next_unpublished()
+        if not url:
+            notify('TaskPilot', 'No hay URLs nuevas ni articulos en la hoja')
+            return
+        print('Selected article:' , url)
+        text = extract_text_from_url(url)
+        if not text:
+            print("Failed to extract text from the article.")
+            return
+        rewritten = rewrite_news(title='' ,description=text)
+        if len(rewritten) > 280:
+            result = post_thread(rewritten)
         else:
-            sources = [{'link': row, 'title': None,  'description': None} for row in rows if row.startswith('http')]
-    else:
-        articles = get_rss_news(RSS_FEED,limit=5)
-        sources = [{'link': a['link'], 'title': a['title'],  'description': a['description']} for a in articles]
-    if not sources:
-        print("No articles found.")
-        return
-    
-    article = random.choice(sources)
-    print("Selected article:", article['link'])
-    text = extract_text_from_url(article['link'])
-    if not text:
-        print("Failed to extract text from the article.")
-        return
-    rewritten = rewrite_news(title='' ,description=text)
-    tweet = f"{rewritten}"
-    if len(tweet) > 280:
-        tweet = tweet[:277] + "..."
-
-    result = post_tweet(tweet)
-    print('Publicado en twitter', result)
+            result = post_tweet(rewritten)
+        print('Publicado en twitter', result)
+        notify( "✅ TaskPilot - Publicación realizada",
+            f"Artículo: {url}\n\nTweet:\n{result}")
+        mark_as_published(ws, row)
+    except Exception as e:
+        err = traceback.format_exc()
+        print('Error en job')
+        notify("❌ TaskPilot - Error crítico", f"{e}\n\nTraceback:\n{err}")
 
 if __name__ == "__main__":
     job()
