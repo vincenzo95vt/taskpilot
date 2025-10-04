@@ -6,7 +6,7 @@ from scraper import extract_text_from_url
 from notifier import notify
 import traceback
 
-RSS_FEED = "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada" 
+RSS_FEED = "https://www.genbeta.com/feedburner.xml" 
 def job():
     try:
         sync_rss_to_sheet(RSS_FEED, limit= 5)

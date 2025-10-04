@@ -1,5 +1,7 @@
 import tweepy
 import os
+import time
+import textwrap
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -14,36 +16,52 @@ def post_tweet(text: str):
     response = client.create_tweet(text=text)
     return response.data
 
-def split_into_tweets(text, limit =280):
+def split_into_tweets_safe(text, limit=280):
+    """
+    Divide un texto largo en varios tweets de forma segura,
+    garantizando que ningún tweet (incluyendo el sufijo (x/n))
+    exceda los 280 caracteres.
+    """
     words = text.split()
     tweets = []
-    current = ''
+    current = ""
 
     for word in words:
-        if len(current) + len(word) +1 <= limit:
+        if len(current) + len(word) + 1 <= limit:
             current += (" " if current else "") + word
-        else: 
+        else:
             tweets.append(current)
-            current = word 
+            current = word
     if current:
         tweets.append(current)
+
     total = len(tweets)
-    tweets =[f"{t} ({i + 1}/{total})" for i, t in enumerate(tweets)]
-    return tweets
+    safe_tweets = []
+    for i, t in enumerate(tweets):
+        suffix = f" ({i+1}/{total})"
+        if len(t) + len(suffix) > limit:
+            t = t[: limit - len(suffix) - 1] + "…"
+        safe_tweets.append(t + suffix)
+
+    return safe_tweets
 
 def post_thread(text):
-    tweets = split_into_tweets(text)
-
-    response = client.create_tweet(text=tweets[0])
-    reply_to_id = response.data["id"]
-    ids = [reply_to_id]
-
-    for t in tweets[1:]:
-        response = client.create_tweet(
-            text=t,
-            in_reply_to_tweet_id=reply_to_id
-        )
+    tweets = split_into_tweets_safe(text)
+    try:
+        response = client.create_tweet(text=tweets[0])
         reply_to_id = response.data["id"]
-        ids.append(reply_to_id)
+        ids = [reply_to_id]
 
-    return ids
+        for t in tweets[1:]:
+            response = client.create_tweet(
+                text=t,
+                in_reply_to_tweet_id=reply_to_id
+            )
+            reply_to_id = response.data["id"]
+            ids.append(reply_to_id)
+            time.sleep(5)
+
+        return ids
+    except tweepy.errors.Forbidden as e:
+        print(e.response.text)
+        raise
