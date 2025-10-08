@@ -25,9 +25,9 @@ def job():
         else:
             result = post_tweet(rewritten)
         print('Publicado en twitter', result)
+        mark_as_published(ws, row)
         notify( "✅ TaskPilot - Publicación realizada",
             f"Artículo: {url}\n\nTweet:\n{result}")
-        mark_as_published(ws, row)
     except Exception as e:
         err = traceback.format_exc()
         print('Error en job')
