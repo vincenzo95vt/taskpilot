@@ -19,7 +19,7 @@ def send_telegram(msg: str) -> bool:
         print('Error al enviar mensaje')
         return False
     
-def notify(subject: str, msg: str):
-    full_msg = f"{subject}\n\n {msg}"
+def notify(subject: str, msg: str, google_data):
+    full_msg = f"{subject}\n\n {msg} \\n {google_data}"
     ok_tg = send_telegram(full_msg)
     return ok_tg

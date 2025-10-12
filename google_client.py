@@ -41,7 +41,7 @@ def get_next_unpublished(sheet_name='Mediamirror Bot', worksheet = 0):
     for i, row in enumerate(rows[1:], start=2):
         url, status = row[0], row[1] if len(row) > 1 else ""
         if url.startswith('http') and status.strip().lower() != 'publicado':
-            return 1, url, ws
+            return i, url, ws
     return None, None, ws
 
 
@@ -62,3 +62,4 @@ def get_unpublished_urls(sheet_name='Mediamirror Bot', worksheet = 0):
 def mark_as_published(ws, row):
     ws.update_cell(row, 2, 'Publicado')
     ws.update_cell(row, 3, time.strftime("%Y-%m-%d %H:%M"))  # Fecha
+    return 'Google sheets actualizado'

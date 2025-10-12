@@ -1,5 +1,4 @@
 import feedparser
-
 def get_rss_news(url, limit = 5):
     feed = feedparser.parse(url)
     articles = []
