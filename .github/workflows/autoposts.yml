@@ -1,0 +1,25 @@
+name: Run TaskPilot Bot
+
+on:
+  schedule:
+    - cron: "0 8,20 * * *"  # Ejecuta a las 8:00 y 20:00 UTC (ajusta a tu hora local)
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Run bot
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          META_USER_TOKEN: ${{ secrets.META_USER_TOKEN }}
+          IG_BUSINESS_ACCOUNT: ${{ secrets.IG_BUSINESS_ACCOUNT }}
+        run: python bot.py
