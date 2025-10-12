@@ -29,4 +29,6 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           META_USER_TOKEN: ${{ secrets.META_USER_TOKEN }}
           IG_BUSINESS_ACCOUNT: ${{ secrets.IG_BUSINESS_ACCOUNT }}
+          TELEGRAM_BOT: ${{secrets.TELEGRAM_BOT}}
+          TELEGRAM_CHAT_ID: ${{secrets.TELEGRAM_CHAT_ID}}
         run: python bot.py
