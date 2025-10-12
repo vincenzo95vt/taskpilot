@@ -1,23 +1,30 @@
-name: Run TaskPilot Bot
+name: Run TaskPilot Bot (Instagram AutoPost)
 
 on:
   schedule:
-    - cron: "0 8,20 * * *"  # Ejecuta a las 8:00 y 20:00 UTC (ajusta a tu hora local)
-  workflow_dispatch:
+    # Ejecuta cada día a las 10:00 y 22:00 hora de España (08:00 y 20:00 UTC)
+    - cron: "0 8,20 * * *"
+  workflow_dispatch:  # Permite lanzarlo manualmente desde la pestaña "Actions"
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
+      - name: 🧩 Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
-      - name: Install dependencies
+
+      - name: 📦 Instalar dependencias
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run bot
+
+      - name: 🚀 Ejecutar bot principal
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           META_USER_TOKEN: ${{ secrets.META_USER_TOKEN }}
