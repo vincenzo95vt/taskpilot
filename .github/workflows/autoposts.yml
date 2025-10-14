@@ -24,11 +24,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # 🔐 Crear archivo credentials.json temporalmente
+      - name: 🔑 Crear credenciales de Google
+        run: |
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > credentials.json
+
       - name: 🚀 Ejecutar bot principal
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           META_USER_TOKEN: ${{ secrets.META_USER_TOKEN }}
           IG_BUSINESS_ACCOUNT: ${{ secrets.IG_BUSINESS_ACCOUNT }}
-          TELEGRAM_BOT: ${{secrets.TELEGRAM_BOT}}
-          TELEGRAM_CHAT_ID: ${{secrets.TELEGRAM_CHAT_ID}}
+          TELEGRAM_BOT: ${{ secrets.TELEGRAM_BOT }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GOOGLE_APPLICATION_CREDENTIALS: credentials.json
         run: python bot.py
+
+      # 🧹 Limpieza final (opcional, elimina el archivo tras ejecución)
+      - name: 🧽 Eliminar credenciales temporales
+        if: always()
+        run: rm -f credentials.json
