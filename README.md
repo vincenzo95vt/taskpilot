@@ -26,17 +26,6 @@ Obtiene titulares desde **fuentes RSS**, los analiza y reescribe con **OpenAI GP
 
 ---
 
-## 🧱 Estructura del proyecto
-
-autoposts/
-│
-├── bot.py # Script principal del bot
-├── google_client.py # Módulo de conexión con Google Sheets
-├── utils/ # Funciones auxiliares (formato, logs, etc.)
-├── config.py # Configuración general del proyecto
-├── requirements.txt # Dependencias necesarias
-└── .github/workflows/
-└── autoposts.yml # Automatización con GitHub Actions
 ## 🧩 Ejemplo de flujo
 
 1. El bot obtiene los titulares más recientes de un **Feed RSS**.  
@@ -68,4 +57,4 @@ Forma parte del ecosistema de automatizaciones de **TaskPilot**, enfocado en la 
 
 **Pablo Vincenzo Vasta Triviño**  
 Desarrollador Fullstack especializado en automatización con IA  
-🔗 [linkedin.com/in/pablovasta](https://linkedin.com/in/pablovasta)
+🔗 [https://www.linkedin.com/in/pablo-vincenzo-vasta-trivi%C3%B1o/](https://www.linkedin.com/in/pablo-vincenzo-vasta-trivi%C3%B1o/)
