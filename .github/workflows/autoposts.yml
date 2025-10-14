@@ -27,7 +27,7 @@ jobs:
       # 🔐 Crear archivo credentials.json temporalmente
       - name: 🔑 Crear credenciales de Google
         run: |
-          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > credentials.json
+            echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > credentials.json
 
       - name: 🚀 Ejecutar bot principal
         env:
