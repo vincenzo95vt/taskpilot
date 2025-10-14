@@ -13,3 +13,4 @@ __pycache__/
 
 # Otros (si usas notebooks o pruebas locales)
 *.ipynb_checkpoints
+/credentials.json
