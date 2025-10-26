@@ -39,7 +39,7 @@ def post_to_linkeind(text, image_path= None):
             if upload_response.status_code not in (200, 201):
                 return {
                     "status": upload_response.status_code,
-                    "messaeg": f"Error subiendo imagen: {upload_response.text}"
+                    "message": f"Error subiendo imagen: {upload_response.text}"
                 }
     post_body = {
         "author": f"urn:li:organization:{linkedin_org_id}",
