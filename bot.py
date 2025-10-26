@@ -5,6 +5,7 @@ from google_client import get_unpublished_urls, sync_rss_to_sheet, get_next_unpu
 from scraper import extract_article_img, extract_text_from_url
 from utils.utils import format_caption
 from instagram_client import post_to_ig
+from linkedin_client import post_to_linkeind
 from notifier import notify
 import traceback
 
@@ -26,7 +27,14 @@ def job():
         caption = caption.replace('\r\n', '\n').replace('\r', '\n')
         caption = caption.replace('. ', '.\n\n')
         image_url = extract_article_img(url=url)
-        result = post_to_ig(caption=caption, image_url=image_url)
+        result = {
+            "instagram": None,
+            "linkedin": None
+        }
+        result['linkedin'] = post_to_linkeind(text=caption, image_path=image_url)
+        print(result['linkedin'])
+        return
+        result['instagram'] = post_to_ig(caption=caption, image_url=image_url)
         print(result)
         update_sheet = mark_as_published(ws, row)
         print(update_sheet)
