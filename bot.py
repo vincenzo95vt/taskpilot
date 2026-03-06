@@ -27,14 +27,7 @@ def job():
         caption = caption.replace('\r\n', '\n').replace('\r', '\n')
         caption = caption.replace('. ', '.\n\n')
         image_url = extract_article_img(url=url)
-        result = {
-            "instagram": None,
-            "linkedin": None
-        }
-        result['linkedin'] = post_to_linkedin(text=caption, image_path=image_url)
-        print(result['linkedin'])
-        return
-        result['instagram'] = post_to_ig(caption=caption, image_url=image_url)
+        result= post_to_ig(caption=caption, image_url=image_url)
         print(result)
         update_sheet = mark_as_published(ws, row)
         print(update_sheet)
