@@ -9,7 +9,6 @@ on:
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-
     steps:
       - name: 🧩 Checkout del repositorio
         uses: actions/checkout@v4
@@ -19,6 +18,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: 🎬 Instalar FFmpeg
+        run: sudo apt-get install -y ffmpeg
+
       - name: 📦 Instalar dependencias
         run: |
           python -m pip install --upgrade pip
@@ -27,7 +29,7 @@ jobs:
       # 🔐 Crear archivo credentials.json temporalmente
       - name: 🔑 Crear credenciales de Google
         run: |
-            echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > credentials.json
+          echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > credentials.json
 
       - name: 🚀 Ejecutar bot principal
         env:
@@ -37,9 +39,20 @@ jobs:
           TELEGRAM_BOT: ${{ secrets.TELEGRAM_BOT }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           GOOGLE_APPLICATION_CREDENTIALS: credentials.json
+          # ElevenLabs
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          # Cloudinary
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          # HuggingFace
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          # Activar modo Reel
+          POST_REEL: ${{ secrets.POST_REEL }}
         run: python bot.py
 
-      # 🧹 Limpieza final (opcional, elimina el archivo tras ejecución)
+      # 🧹 Limpieza final
       - name: 🧽 Eliminar credenciales temporales
         if: always()
         run: rm -f credentials.json
