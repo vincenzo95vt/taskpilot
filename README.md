@@ -1,17 +1,60 @@
-# 🤖 AutoPosts Bot
+# 🤖 SynthSight AutoPosts Bot
 
-Un bot en **Python** que publica noticias en Twitter (X) de forma automática.  
-Toma titulares desde **Feed RSS**, los reescribe con **OpenAI** para darles un estilo claro y objetivo, y los publica usando la API de **Instagram (Meta)**.
-
----
-
-## 🚀 Características
-- Obtiene titulares recientes.  
-- Reescribe los titulares con inteligencia artificial (OpenAI GPT).  
-- Publica automáticamente en tu cuenta de Instagram (X).  
-- Configuración limpia mediante `.env` y `config.py`.  
-- Fácil de extender con más fuentes de noticias o diferentes estilos de redacción.  
+Un bot inteligente desarrollado en **Python** que publica noticias de **tecnología e inteligencia artificial** en **Instagram** de forma automática.  
+Obtiene titulares desde **fuentes RSS**, los analiza y reescribe con **OpenAI GPT** para lograr un estilo informativo, conciso y atractivo, y los publica a través de la **API de Meta (Instagram Graph API)**.
 
 ---
 
-## 📂 Estructura del proyecto
+## 🚀 Características principales
+
+- 🔄 **Automatización completa:** obtiene, procesa y publica contenido sin intervención manual.  
+- 🧠 **Reescritura con IA:** transforma los titulares originales en textos más naturales, objetivos y atractivos.  
+- 📰 **Fuentes RSS dinámicas:** configurable para distintas webs de noticias tecnológicas.  
+- 📸 **Publicación automática:** genera imágenes o miniaturas y las sube directamente a Instagram.  
+- ⚙️ **Configuración sencilla:** mediante variables de entorno (`.env`) y un archivo `config.py`.  
+- 📅 **Ejecución programada:** utiliza **GitHub Actions** para publicar dos veces al día de forma automática.  
+
+---
+
+## 🧩 Tecnologías utilizadas
+
+- **Python 3.12**  
+- **OpenAI API** — Reescritura y mejora de titulares  
+- **Meta Graph API** — Publicación en Instagram  
+- **Google Sheets API + gspread** — Registro y control de publicaciones  
+- **GitHub Actions** — Automatización de tareas y despliegue  
+
+---
+
+## 🧩 Ejemplo de flujo
+
+1. El bot obtiene los titulares más recientes de un **Feed RSS**.  
+2. Reescribe los titulares usando **OpenAI GPT** con un estilo claro y objetivo.  
+3. Genera una imagen o diseño visual para acompañar la publicación.  
+4. Publica automáticamente el contenido en la cuenta de Instagram configurada.  
+5. Guarda el registro en **Google Sheets** para evitar duplicados.  
+6. Envía una notificación a **Telegram** con el estado del proceso.  
+
+---
+
+## 🧠 Proyecto SynthSight
+
+**SynthSight** es una iniciativa de automatización de contenidos que combina inteligencia artificial y redes sociales para compartir noticias tecnológicas de forma eficiente, creativa y transparente.  
+Forma parte del ecosistema de automatizaciones de **TaskPilot**, enfocado en la creación de contenido autónomo impulsado por IA.
+
+---
+
+## 💡 Próximas mejoras
+
+- 🎥 Integración con **TikTok y YouTube Shorts**.  
+- 📊 Sistema de analítica para medir engagement y rendimiento.  
+- 🧍‍♂️ Generación de vídeos con **avatares IA** explicando las noticias.  
+- 🌐 Panel web de control para gestionar fuentes RSS, horarios y estilo de publicación.  
+
+---
+
+## 🧑‍💻 Autor
+
+**Pablo Vincenzo Vasta Triviño**  
+Desarrollador Fullstack especializado en automatización con IA  
+🔗 [https://www.linkedin.com/in/pablo-vincenzo-vasta-trivi%C3%B1o/](https://www.linkedin.com/in/pablo-vincenzo-vasta-trivi%C3%B1o/)
