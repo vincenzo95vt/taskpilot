@@ -1,70 +1,125 @@
 import requests
 from dotenv import load_dotenv
 import os
+import tempfile
+
 load_dotenv()
 
-client_secret = os.getenv('LINKEDIN_PRIMARY_SECRET')
-linkedin_id = os.getenv('LINKEDIN_CLIENT_ID')
 linkedin_access_token = os.getenv('LINKEDIN_ACCESS_TOKEN')
-linkedin_org_id = os.getenv('LINKEDIN_ORGANIZATION_ID')
-def post_to_linkeind(text, image_path= None):
-    if not linkedin_access_token:
-        raise ValueError('falta el token de Linkedin. Añadelo a tu archivo .env')
-    headers = {
-        'Authorization': f"Bearer{linkedin_access_token}",
-        'X-Restli-Protocol-Version': '2.0.0'
-    }
-    asset = None
-    if image_path:
-        register_upload = requests.post(
-        "https://api.linkedin.com/v2/assets?action=registerUpload",
-        headers = headers,
-        json = {
-            "registerUploadRequest" : {
-                "recipes": ["urn:li:digitalmediaRecipe:feedshare-image"],
-                "owner": f"urn:li:organization:{linkedin_org_id}",
-                    "serviceRelationships": [
-                        {"relationshipType": "OWNER", "identifier": "urn:li:userGeneratedContent"}
-                    ]   
+linkedin_org_id = os.getenv('LINKEDIN_ORGANIZATION_ID')  # Solo el número, ej: 12345678
+
+
+def post_to_linkedin(text, image_path=None):
+    try:
+        if not linkedin_access_token:
+            raise ValueError('Falta el token de LinkedIn. Añádelo a tu archivo .env')
+
+        headers = {
+            'Authorization': f"Bearer {linkedin_access_token}",
+            'X-Restli-Protocol-Version': '2.0.0',
+            'Content-Type': 'application/json',
+        }
+
+        # ✅ FIX 1: usar urn:li:organization, NO urn:li:person
+        author_urn = f"urn:li:organization:{linkedin_org_id}"
+
+        asset = None
+        temp_file = None
+
+        # Si la imagen es una URL, descargarla temporalmente
+        if image_path and image_path.startswith('http'):
+            response = requests.get(image_path)
+            if response.status_code != 200:
+                raise Exception(f"Error descargando la imagen: {response.status_code}")
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+            temp_file.write(response.content)
+            temp_file.close()
+            image_path = temp_file.name
+            print(f"Imagen temporal guardada en {image_path}")
+
+        # Subir imagen si existe
+        if image_path:
+            register_upload = requests.post(
+                "https://api.linkedin.com/v2/assets?action=registerUpload",
+                headers=headers,
+                json={
+                    "registerUploadRequest": {
+                        "recipes": ["urn:li:digitalmediaRecipe:feedshare-image"],
+                        # ✅ FIX 1 aquí también
+                        "owner": author_urn,
+                        "serviceRelationships": [
+                            {
+                                "relationshipType": "OWNER",
+                                "identifier": "urn:li:userGeneratedContent"
+                            }
+                        ]
+                    }
                 }
-            }
+            )
+
+            print("🔍 register_upload response:", register_upload.status_code, register_upload.text)
+
+            if register_upload.status_code not in (200, 201):
+                raise Exception(f"Error registrando la subida: {register_upload.text}")
+
+            upload_data = register_upload.json()
+            upload_url = upload_data["value"]["uploadMechanism"][
+                "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
+            ]["uploadUrl"]
+            asset = upload_data['value']['asset']
+
+            # ✅ FIX 2: usar POST en vez de PUT para subir la imagen
+            with open(image_path, "rb") as f:
+                upload_response = requests.post(
+                    upload_url,
+                    data=f,
+                    headers={"Authorization": f"Bearer {linkedin_access_token}"}
+                )
+                print("🔍 upload_response:", upload_response.status_code, upload_response.text)
+                if upload_response.status_code not in (200, 201):
+                    raise Exception(f"Error subiendo imagen: {upload_response.text}")
+
+        # Crear el cuerpo del post
+        post_body = {
+            "author": author_urn,
+            "lifecycleState": "PUBLISHED",
+            "specificContent": {
+                "com.linkedin.ugc.ShareContent": {
+                    "shareCommentary": {"text": text},
+                    "shareMediaCategory": "NONE" if not asset else "IMAGE",
+                }
+            },
+            "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"},
+        }
+
+        if asset:
+            post_body["specificContent"]["com.linkedin.ugc.ShareContent"]["media"] = [
+                {"status": "READY", "media": asset}
+            ]
+
+        response = requests.post(
+            "https://api.linkedin.com/v2/ugcPosts",
+            headers=headers,
+            json=post_body
         )
-        print("🔍 register_upload response:", register_upload.status_code, register_upload.text)
-        upload_data = register_upload.json()
-        upload_url = upload_data["value"]["uploadMechanism"]["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]["uploadUrl"]
-        asset = upload_data['value']['asset']
 
-        with open(image_path, "rb") as f:
-            upload_response = requests.put(upload_url, data=f, headers={"Authorization": f"Bearer {linkedin_access_token}"})
-            if upload_response.status_code not in (200, 201):
-                return {
-                    "status": upload_response.status_code,
-                    "message": f"Error subiendo imagen: {upload_response.text}"
-                }
-    post_body = {
-        "author": f"urn:li:organization:{linkedin_org_id}",
-        "lifecycleState": "PUBLISHED",
-        "specificContent": {
-            "com.linkedin.ugc.ShareContent": {
-                "shareCommentary": {"text": text},
-                "shareMediaCategory": "NONE" if not asset else "IMAGE",
-            }
-        },
-        "visibility": {"com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"},
-    }
+        print("🔍 ugcPosts response:", response.status_code, response.text)
 
-    if asset:
-        post_body["specificContent"]["com.linkedin.ugc.ShareContent"]["media"] = [
-            {"status": "READY", "media": asset}
-        ]
-    response = requests.post("https://api.linkedin.com/v2/ugcPosts", headers=headers, json=post_body)
-    if response.status_code == 201:
-        return  {
-            "status": 200,
-            "message": 'Publicado correctamente en Linkedin'
-        }
-    else:
-        return {
-            "status": response.status_code,
-            "message": f"Error a la hora de publicar en linkedin {response.text}"
-        }
+        if response.status_code == 201:
+            return {"status": 200, "message": "Publicado correctamente en LinkedIn ✅"}
+        else:
+            return {"status": response.status_code, "message": f"Error al publicar: {response.text}"}
+
+    except requests.exceptions.RequestException as e:
+        return {"status": 500, "message": f"Error de conexión con LinkedIn: {e}"}
+    except ValueError as e:
+        return {"status": 400, "message": str(e)}
+    except Exception as e:
+        return {"status": 500, "message": f"Error inesperado: {e}"}
+    finally:
+        if temp_file:
+            try:
+                os.remove(temp_file.name)
+                print(f"Imagen temporal eliminada: {temp_file.name}")
+            except Exception as cleanup_error:
+                print(f"No se pudo eliminar el archivo temporal: {cleanup_error}")
