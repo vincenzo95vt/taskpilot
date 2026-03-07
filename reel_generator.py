@@ -27,6 +27,8 @@ from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
+from animated_subtitles import image_audio_to_clip, video_audio_to_clip
+from broll_pexels import get_broll_clips
 
 load_dotenv()
 
@@ -90,6 +92,12 @@ def generate_script(article_text: str) -> list[dict]:
 # ─────────────────────────────────────────────
 def generate_audio(text: str, output_path: str, is_last: bool = False):
     """Genera un archivo MP3 con tu voz clonada."""
+    TEST_MODE = False
+    if TEST_MODE:
+        import shutil
+        shutil.copy('test_audio.mp3', output_path)
+        print(f"Audio de prueba copiado:", {output_path})
+        return
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
     headers = {
         "xi-api-key": ELEVENLABS_API_KEY,
@@ -183,66 +191,66 @@ def prepare_image(image_url: str, output_path: str):
 # ─────────────────────────────────────────────
 # 4. FFmpeg: une imagen + audio en clip de vídeo
 # ─────────────────────────────────────────────
-def image_audio_to_clip(image_path: str, audio_path: str, output_path: str, narration: str = ""):
-    """Crea un clip de vídeo con efecto Ken Burns + subtítulos amarillos centrados."""
+# def image_audio_to_clip(image_path: str, audio_path: str, output_path: str, narration: str = ""):
+#     """Crea un clip de vídeo con efecto Ken Burns + subtítulos amarillos centrados."""
 
-    # Escapar caracteres especiales para FFmpeg drawtext
-    def escape_text(t):
-        return t.replace("\\", "").replace("'", "\'").replace(":", "\:").replace("%", "\%")
+#     # Escapar caracteres especiales para FFmpeg drawtext
+#     def escape_text(t):
+#         return t.replace("\\", "").replace("'", "\'").replace(":", "\:").replace("%", "\%")
 
-    # Dividir el texto en líneas de máx 30 caracteres para que quepa en pantalla
-    import textwrap
-    words = narration.strip()
-    lines = textwrap.wrap(words, width=28)
-    text_escaped = "\n".join([escape_text(l) for l in lines])
+#     # Dividir el texto en líneas de máx 30 caracteres para que quepa en pantalla
+#     import textwrap
+#     words = narration.strip()
+#     lines = textwrap.wrap(words, width=28)
+#     text_escaped = "\n".join([escape_text(l) for l in lines])
 
-    # Ken Burns: zoom lento del 100% al 115%
-    ken_burns = (
-        f"scale={REEL_WIDTH*2}:{REEL_HEIGHT*2},"
-        f"zoompan="
-        f"z='min(zoom+0.0008,1.15)':"
-        f"x='iw/2-(iw/zoom/2)':"
-        f"y='ih/2-(ih/zoom/2)':"
-        f"d=9000:"
-        f"s={REEL_WIDTH}x{REEL_HEIGHT}:"
-        f"fps=25"
-    )
+#     # Ken Burns: zoom lento del 100% al 115%
+#     ken_burns = (
+#         f"scale={REEL_WIDTH*2}:{REEL_HEIGHT*2},"
+#         f"zoompan="
+#         f"z='min(zoom+0.0008,1.15)':"
+#         f"x='iw/2-(iw/zoom/2)':"
+#         f"y='ih/2-(ih/zoom/2)':"
+#         f"d=9000:"
+#         f"s={REEL_WIDTH}x{REEL_HEIGHT}:"
+#         f"fps=25"
+#     )
 
-    # Subtítulos: texto amarillo, fondo negro semitransparente, centrado verticalmente
-    subtitle_filter = (
-        f"drawtext="
-        f"text='{text_escaped}':"
-        f"fontsize=62:"
-        f"fontcolor=yellow:"
-        f"font=Arial:"
-        f"borderw=3:"
-        f"bordercolor=black:"
-        f"box=1:"
-        f"boxcolor=black@0.45:"
-        f"boxborderw=18:"
-        f"x=(w-text_w)/2:"          # centrado horizontal
-        f"y=(h-text_h)/2:"          # centrado vertical
-        f"line_spacing=12"
-    )
+#     # Subtítulos: texto amarillo, fondo negro semitransparente, centrado verticalmente
+#     subtitle_filter = (
+#         f"drawtext="
+#         f"text='{text_escaped}':"
+#         f"fontsize=62:"
+#         f"fontcolor=yellow:"
+#         f"font=Arial:"
+#         f"borderw=3:"
+#         f"bordercolor=black:"
+#         f"box=1:"
+#         f"boxcolor=black@0.45:"
+#         f"boxborderw=18:"
+#         f"x=(w-text_w)/2:"          # centrado horizontal
+#         f"y=(h-text_h)/2:"          # centrado vertical
+#         f"line_spacing=12"
+#     )
 
-    full_filter = f"{ken_burns},{subtitle_filter}"
+#     full_filter = f"{ken_burns},{subtitle_filter}"
 
-    cmd = [
-        "ffmpeg", "-y",
-        "-loop", "1",
-        "-i", image_path,
-        "-i", audio_path,
-        "-c:v", "libx264",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-pix_fmt", "yuv420p",
-        "-shortest",
-        "-vf", full_filter,
-        "-preset", "fast",
-        output_path
-    ]
-    subprocess.run(cmd, check=True, capture_output=True)
-    print(f"  ✅ Clip con Ken Burns + subtítulos: {output_path}")
+#     cmd = [
+#         "ffmpeg", "-y",
+#         "-loop", "1",
+#         "-i", image_path,
+#         "-i", audio_path,
+#         "-c:v", "libx264",
+#         "-c:a", "aac",
+#         "-b:a", "192k",
+#         "-pix_fmt", "yuv420p",
+#         "-shortest",
+#         "-vf", full_filter,
+#         "-preset", "fast",
+#         output_path
+#     ]
+#     subprocess.run(cmd, check=True, capture_output=True)
+#     print(f"  ✅ Clip con Ken Burns + subtítulos: {output_path}")
 
 
 # ─────────────────────────────────────────────
@@ -262,7 +270,11 @@ def concatenate_clips(clip_paths: list[str], output_path: str):
         "-f", "concat",
         "-safe", "0",
         "-i", concat_file,
-        "-c", "copy",
+        "-c:v", "libx264",     
+        "-c:a", "aac",         
+        "-b:a", "192k",
+        "-pix_fmt", "yuv420p",
+        "-preset", "fast",
         raw_output
     ]
     subprocess.run(cmd, check=True, capture_output=True)
@@ -319,6 +331,8 @@ def generate_reel(article_text: str, image_url: str, output_path: str = "reel_ou
     # Paso 2: Preparar imagen del RSS una sola vez (con gradiente)
     base_image_path = str(work_dir / "base_image.png")
     prepare_image(image_url, base_image_path)
+    print("\n🎥 Descargando clips de b-roll...")
+    broll_clips = get_broll_clips(article_text, num_clips=4, duration=7)
 
     clips = []
 
@@ -328,15 +342,40 @@ def generate_reel(article_text: str, image_url: str, output_path: str = "reel_ou
         audio_path = str(work_dir / f"audio_{i}.mp3")
         clip_path  = str(work_dir / f"clip_{i}.mp4")
 
-        # Paso 3: Audio
         generate_audio(scene["narration"], audio_path, is_last=(i == len(scenes) - 1))
 
-        # Paso 4: Clip con la misma imagen base (Ken Burns da movimiento diferente por escena)
-        image_audio_to_clip(base_image_path, audio_path, clip_path, narration=scene["narration"])
+        if broll_clips:
+            broll_index = i % len(broll_clips)
+            video_audio_to_clip(broll_clips[broll_index], audio_path, clip_path, narration=scene["narration"])
+        else:
+            image_audio_to_clip(base_image_path, audio_path, clip_path, narration=scene["narration"])
+
         clips.append(clip_path)
 
-    # Paso 5: Reel final
-    print("\n🔗 Concatenando clips...")
-    concatenate_clips(clips, output_path)
+        # Paso 5: Reel final
+        print("\n🔗 Concatenando clips...")
+        concatenate_clips(clips, output_path)
 
-    return output_path
+        return output_path
+
+if __name__ == "__main__":
+    # Texto de prueba — cámbialo por cualquier noticia tech
+    test_article = """
+    OpenAI ha lanzado GPT-5, su modelo de inteligencia artificial más avanzado hasta la fecha.
+    El nuevo modelo supera a sus predecesores en razonamiento, codificación y comprensión del lenguaje.
+    Según la compañía, GPT-5 es capaz de resolver problemas matemáticos complejos y escribir código
+    de producción con una precisión nunca vista. El lanzamiento llega en un momento de intensa
+    competencia con Google, Meta y Anthropic. El acceso estará disponible primero para usuarios
+    de ChatGPT Plus y la API de OpenAI.
+    """
+
+    # URL de imagen de prueba (cualquier imagen tech de internet)
+    test_image_url = "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=1080"
+
+    resultado = generate_reel(
+        article_text=test_article,
+        image_url=test_image_url,
+        output_path="reel_prueba.mp4"
+    )
+
+    print(f"\n🎬 Reel generado: {resultado}")
