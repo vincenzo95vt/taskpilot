@@ -1,17 +1,21 @@
-from rss_client import get_rss_news
-from writer import rewrite_news
-from twitter_client import post_tweet, post_thread
-from google_client import get_unpublished_urls, sync_rss_to_sheet, get_next_unpublished, mark_as_published
+from clients.rss_client import get_rss_news
+from editor.text.writer import rewrite_news
+from clients.twitter_client import post_tweet, post_thread
+from clients.google_client import get_unpublished_urls, sync_rss_to_sheet, get_next_unpublished, mark_as_published
 from scraper import extract_article_img, extract_text_from_url
 from utils.utils import format_caption
-from instagram_client import post_to_ig, post_reel_to_ig
-from linkedin_client import post_to_linkedin
+from clients.instagram_client import post_to_ig, post_reel_to_ig
+from clients.linkedin_client import post_to_linkedin
 from notifier import notify
-from reel_generator import generate_reel
+from editor.video.reel_generator import generate_reel
 import traceback
 import os
 
-RSS_FEED = "https://www.genbeta.com/feedburner.xml"
+RSS_FEED = [
+    "https://www.genbeta.com/feedburner.xml",
+    "https://www.technologyreview.com/feed/",
+    "https://hipertextual.com/feed",
+    ]
 
 
 POST_REEL = os.getenv("POST_REEL", "false").lower() == "true"
@@ -19,7 +23,7 @@ POST_REEL = os.getenv("POST_REEL", "false").lower() == "true"
 
 def job():
     try:
-        sync_rss_to_sheet(RSS_FEED, limit=5)
+        sync_rss_to_sheet(RSS_FEED)
         row, url, ws = get_next_unpublished()
 
         if not url:

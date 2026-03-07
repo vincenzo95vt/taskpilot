@@ -11,7 +11,7 @@ client = OpenAI(api_key=openai_api)
 def rewrite_news(title: str, description: str = "") -> str:
     prompt = f"""
 Eres el community manager de The SynthSight, empresa de software en Málaga.
-Tu tarea es escribir una descripción corta para acompañar un Reel de Instagram sobre esta noticia.
+Tu tarea es escribir una descripción corta en español para acompañar un Reel de Instagram sobre esta noticia, si viene en Inglés deberás traducirlo.
 Noticia: {description}
 Instrucciones:
 - Escribe MÁXIMO 3 líneas en total.

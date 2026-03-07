@@ -27,8 +27,8 @@ from pathlib import Path
 from openai import OpenAI
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
-from animated_subtitles import image_audio_to_clip, video_audio_to_clip
-from broll_pexels import get_broll_clips
+from editor.video.animated_subtitles import image_audio_to_clip, video_audio_to_clip
+from editor.video.broll_pexels import get_broll_clips
 
 load_dotenv()
 
@@ -56,12 +56,12 @@ def generate_script(article_text: str) -> list[dict]:
                 "role": "system",
                 "content": """Eres el community manager de The SynthSight, empresa de software en Málaga.
                 Tono: directo, técnico pero accesible, con opinión propia. Frases cortas.
-                Tu tarea: convertir un artículo en un guión para un Reel de Instagram.
+                Tu tarea: convertir un artículo en un guión en español para un Reel de Instagram, si el contenido viene en Inglés es importante que lo traduzcas al español.
                 Divide el contenido en 3-5 escenas cortas.
 
                 IMPORTANTE:
                 - La ÚLTIMA escena siempre debe cerrar con una frase corta y definitiva, por ejemplo: 
-                "Esto es todo por hoy." o "¿Tú qué opinas? Déjalo en comentarios." o "Síguenos para más noticias tech."
+                "¿Tú qué opinas? Déjalo en comentarios." o "Síguenos para más noticias tech."
                 - Nunca termines con una frase inconclusa o que suene a que hay más contenido después.
                 - Cada narración debe sonar completa por sí sola, con pausas naturales.
 
@@ -92,7 +92,7 @@ def generate_script(article_text: str) -> list[dict]:
 # ─────────────────────────────────────────────
 def generate_audio(text: str, output_path: str, is_last: bool = False):
     """Genera un archivo MP3 con tu voz clonada."""
-    TEST_MODE = False
+    TEST_MODE = True
     if TEST_MODE:
         import shutil
         shutil.copy('test_audio.mp3', output_path)
