@@ -184,10 +184,11 @@ def download_and_crop_clip(clip: dict, output_path: str, duration: int = 7) -> b
         )
 
         cmd = [
-            "ffmpeg", "-y",
+             "ffmpeg", "-y",
             "-i", raw_path,
-            "-t", str(duration),          # Duración exacta
+            "-t", str(duration),
             "-vf", crop_filter,
+            "-r", "25",            # ← fuerza 25fps en todos los clips
             "-c:v", "libx264",
             "-c:a", "aac",
             "-preset", "fast",

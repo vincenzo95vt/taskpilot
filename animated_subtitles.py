@@ -135,16 +135,17 @@ def video_audio_to_clip(video_path: str, audio_path: str, output_path: str, narr
 
     cmd = [
         "ffmpeg", "-y",
-        "-stream_loop", "-1",    # ← loop infinito del vídeo
+        "-stream_loop", "-1",
         "-i", video_path,
         "-i", audio_path,
+        "-r", "25",            # ← fuerza 25fps
         "-c:v", "libx264",
         "-c:a", "aac",
         "-b:a", "192k",
         "-pix_fmt", "yuv420p",
-        "-map", "0:v",           # ← vídeo del clip Pexels
-        "-map", "1:a",           # ← audio de ElevenLabs
-        "-shortest",             # ← ahora corta cuando termina el audio
+        "-map", "0:v",
+        "-map", "1:a",
+        "-shortest",
         "-vf", full_filter,
         "-preset", "fast",
         output_path

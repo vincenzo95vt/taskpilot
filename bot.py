@@ -11,7 +11,10 @@ from reel_generator import generate_reel
 import traceback
 import os
 
-RSS_FEED = "https://www.genbeta.com/feedburner.xml"
+RSS_FEED = [
+    "https://www.genbeta.com/feedburner.xml",
+    "https://www.technologyreview.com/feed/"
+    ]
 
 
 POST_REEL = os.getenv("POST_REEL", "false").lower() == "true"
@@ -21,7 +24,7 @@ def job():
     try:
         sync_rss_to_sheet(RSS_FEED, limit=5)
         row, url, ws = get_next_unpublished()
-
+        
         if not url:
             notify('TaskPilot', 'No hay URLs nuevas ni artículos en la hoja')
             return

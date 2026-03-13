@@ -257,6 +257,9 @@ def prepare_image(image_url: str, output_path: str):
 # 5. FFmpeg: concatena todos los clips en un Reel
 # ─────────────────────────────────────────────
 def concatenate_clips(clip_paths: list[str], output_path: str):
+    print(f"  🔗 Concatenando {len(clip_paths)} clips:")
+    for clip in clip_paths:
+        print(f"     - {clip} existe: {os.path.exists(clip)}")
     """Une todos los clips en el vídeo final y mezcla música de fondo."""
     # Paso 1: Concatenar todos los clips en un vídeo sin música
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
@@ -352,11 +355,10 @@ def generate_reel(article_text: str, image_url: str, output_path: str = "reel_ou
 
         clips.append(clip_path)
 
-        # Paso 5: Reel final
-        print("\n🔗 Concatenando clips...")
-        concatenate_clips(clips, output_path)
+    print("\n🔗 Concatenando clips...")
+    concatenate_clips(clips, output_path)
 
-        return output_path
+    return output_path
 
 if __name__ == "__main__":
     # Texto de prueba — cámbialo por cualquier noticia tech
