@@ -68,24 +68,22 @@ El objetivo es crear un **pipeline completamente automatizado de generación de 
 ```mermaid
 flowchart LR
 
-A[RSS Feeds\nNoticias de tecnología] --> B[Parser RSS\nObtención de titulares]
-B --> C[Procesamiento IA\nOpenAI GPT]
+A[RSS Feeds Noticias de tecnología] --> B[Parser RSS Obtención de titulares]
+B --> C[Procesamiento IA OpenAI GPT]
 C --> D[Generación de guion]
 
-D --> E[ElevenLabs\nGeneración de voz]
-D --> F[Pexels API\nBúsqueda de imágenes o clips]
+D --> E[ElevenLabs Generación de voz]
+D --> F[Pexels API Búsqueda de imágenes o clips]
 
 E --> G[Motor de generación de vídeo]
 F --> G
 
 G --> H[Vídeo final]
+H --> I[Cloudinary]
 
-H --> I[Cloudinary\nAlmacenamiento y URL pública]
-
-I --> J[Publicación\nInstagram Graph API]
-
-J --> K[Registro\nGoogle Sheets]
-J --> L[Notificación\nTelegram]```
+I --> J[Instagram Graph API]
+J --> K[Google Sheets Registro]
+J --> L[Telegram Notificación]
 ```
 # 💡 Próximas mejoras
 
