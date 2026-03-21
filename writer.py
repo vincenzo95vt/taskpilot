@@ -31,3 +31,27 @@ Instrucciones:
         temperature=0.7
     )
     return response.choices[0].message.content.strip()
+
+def rewrite_for_linkedin(description: str) -> str:
+    prompt = f"""
+Eres el editor de The SynthSight, medio de noticias tech/IA en español.
+Tu tarea es reescribir esta noticia para publicarla en LinkedIn.
+
+Noticia: {description}
+
+Instrucciones:
+- Escribe entre 150-300 palabras
+- Tono profesional pero accesible, con opinión propia
+- Estructura: contexto → qué ha pasado → por qué importa → reflexión final
+- NO uses frases como "Te lo contamos en el Reel" o "Mira el vídeo"
+- Termina con una pregunta que invite a comentar
+- Añade 8-10 hashtags relevantes al final
+- Escribe SIEMPRE en español
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=400,
+        temperature=0.7
+    )
+    return response.choices[0].message.content.strip()

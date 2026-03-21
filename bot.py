@@ -1,10 +1,11 @@
 from rss_client import get_rss_news
-from writer import rewrite_news
+from writer import rewrite_news, rewrite_for_linkedin
 from twitter_client import post_tweet, post_thread
 from google_client import get_unpublished_urls, sync_rss_to_sheet, get_next_unpublished, mark_as_published
 from scraper import extract_article_img, extract_text_from_url
 from utils.utils import format_caption
 from instagram_client import post_to_ig, post_reel_to_ig
+from datetime import datetime
 from linkedin_client import post_to_linkedin, post_video_to_linkedin
 from notifier import notify, send_telegram
 from reel_generator import generate_reel
@@ -40,16 +41,22 @@ def job():
         caption = rewritten.strip()
         caption = caption.replace('\r\n', '\n').replace('\r', '\n')
         caption = caption.replace('. ', '.\n\n')
-
+        caption_linkedin = rewrite_for_linkedin(text)
         if POST_REEL:
             # ── Flujo Reel ──────────────────────────────
             print("🎬 Generando Reel...")
             image_url = extract_article_img(url=url)
             reel_path = generate_reel(text, image_url=image_url, output_path="/tmp/reel_output.mp4")
             result = post_reel_to_ig(caption=caption, video_path=reel_path)
-            result_linkedin = post_video_to_linkedin(caption, reel_path)
-            send_telegram(result_linkedin)
+            day = datetime.now().weekday()
+            if day in [1,4]:
+                print('🎬 Publicando vídeo en LinkedIn...')
+                result_linkedin = post_video_to_linkedin(caption, reel_path)
+            else:
+                print("📝 Publicando texto + imagen en LinkedIn...")
+                result_linkedin = post_to_linkedin(caption_linkedin, image_url)
 
+            print(result_linkedin)
             # Limpiar vídeo temporal
             if os.path.exists(reel_path):
                 os.remove(reel_path)
@@ -57,7 +64,7 @@ def job():
             image_url = extract_article_img(url=url)
             result = post_to_ig(caption=caption, image_url=image_url)
 
-        print(result)
+        # print(result)
         update_sheet = mark_as_published(ws, row)
         print(update_sheet)
         notify(
