@@ -48,13 +48,12 @@ def job():
             reel_path = generate_reel(text, image_url=image_url, output_path="/tmp/reel_output.mp4")
             result = post_reel_to_ig(caption=caption, video_path=reel_path)
             result_linkedin = post_video_to_linkedin(caption, reel_path)
-            print(result_linkedin)
+            send_telegram(result_linkedin)
 
             # Limpiar vídeo temporal
             if os.path.exists(reel_path):
                 os.remove(reel_path)
         else:
-            # ── Flujo post estático (original) ──────────
             image_url = extract_article_img(url=url)
             result = post_to_ig(caption=caption, image_url=image_url)
 
