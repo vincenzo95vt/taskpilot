@@ -6,7 +6,7 @@ from scraper import extract_article_img, extract_text_from_url
 from utils.utils import format_caption
 from instagram_client import post_to_ig, post_reel_to_ig
 from linkedin_client import post_to_linkedin, post_video_to_linkedin
-from notifier import notify
+from notifier import notify, send_telegram
 from reel_generator import generate_reel
 import traceback
 import os
@@ -26,14 +26,14 @@ def job():
         row, url, ws = get_next_unpublished()
         
         if not url:
-            notify('TaskPilot', 'No hay URLs nuevas ni artículos en la hoja')
+            send_telegram('TaskPilot: No hay URLs nuevas ni artículos en la hoja')
             return
 
         print('Selected article:', url)
         text = extract_text_from_url(url)
 
         if not text:
-            print("Failed to extract text from the article.")
+            send_telegram("Failed to extract text from the article.")
             return
 
         rewritten = rewrite_news(title='', description=text)
@@ -45,7 +45,7 @@ def job():
             # ── Flujo Reel ──────────────────────────────
             print("🎬 Generando Reel...")
             image_url = extract_article_img(url=url)
-            reel_path = generate_reel(text, image_url=image_url, output_path="/tmp/reel_output.mp4")    
+            reel_path = generate_reel(text, image_url=image_url, output_path="/tmp/reel_output.mp4")
             result = post_reel_to_ig(caption=caption, video_path=reel_path)
             result_linkedin = post_video_to_linkedin(caption, reel_path)
             print(result_linkedin)

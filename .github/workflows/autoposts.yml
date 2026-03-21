@@ -58,3 +58,9 @@ jobs:
       - name: 🧽 Eliminar credenciales temporales
         if: always()
         run: rm -f credentials.json
+      - name: 📱 Notificar error en Telegram
+        if: failure()  # ← solo se ejecuta si algo falla
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="❌ GitHub Actions falló en SynthSight bot%0A%0AWorkflow: ${{ github.workflow }}%0ARazón: ${{ job.status }}"
