@@ -19,7 +19,9 @@ jobs:
           python-version: "3.12"
 
       - name: 🎬 Instalar FFmpeg
-        run: sudo apt-get install -y ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg --fix-missing
 
       - name: 📦 Instalar dependencias
         run: |

@@ -5,7 +5,7 @@ from google_client import get_unpublished_urls, sync_rss_to_sheet, get_next_unpu
 from scraper import extract_article_img, extract_text_from_url
 from utils.utils import format_caption
 from instagram_client import post_to_ig, post_reel_to_ig
-from linkedin_client import post_to_linkedin
+from linkedin_client import post_to_linkedin, post_video_to_linkedin
 from notifier import notify
 from reel_generator import generate_reel
 import traceback
@@ -47,6 +47,8 @@ def job():
             image_url = extract_article_img(url=url)
             reel_path = generate_reel(text, image_url=image_url, output_path="/tmp/reel_output.mp4")    
             result = post_reel_to_ig(caption=caption, video_path=reel_path)
+            result_linkedin = post_video_to_linkedin(caption, reel_path)
+            print(result_linkedin)
 
             # Limpiar vídeo temporal
             if os.path.exists(reel_path):
