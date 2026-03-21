@@ -56,7 +56,7 @@ def job():
                 print("📝 Publicando texto + imagen en LinkedIn...")
                 result_linkedin = post_to_linkedin(caption_linkedin, image_url)
 
-            print(result_linkedin)
+            send_telegram(result_linkedin)
             # Limpiar vídeo temporal
             if os.path.exists(reel_path):
                 os.remove(reel_path)
