@@ -15,7 +15,6 @@ import os
 RSS_FEED = [
     "https://www.genbeta.com/feedburner.xml",
     "https://www.technologyreview.com/feed/",
-    'https://hipertextual.com/feed',
     'https://feeds.weblogssl.com/xataka2'
     ]
 
