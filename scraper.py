@@ -15,4 +15,3 @@ def extract_text_from_url(url: str):
     article.download()
     article.parse()
     return article.title, article.text
-extract_article_img('https://www.genbeta.com/laboral/los-trabajadores-jovenes-son-la-generacion-a-la-que-menos-les-importa-el-salario-pero-valoran-mucho-otras-cosas-de-una-empresa')
