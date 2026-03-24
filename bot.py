@@ -13,9 +13,9 @@ import traceback
 import os
 
 RSS_FEED = [
-    "https://www.genbeta.com/feedburner.xml",
+    # "https://www.genbeta.com/feedburner.xml",
     "https://www.technologyreview.com/feed/",
-    'https://feeds.weblogssl.com/xataka2'
+    # 'https://feeds.weblogssl.com/xataka2'
     ]
 
 
