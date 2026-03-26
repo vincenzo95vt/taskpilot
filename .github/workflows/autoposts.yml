@@ -34,7 +34,13 @@ jobs:
           echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}' > credentials.json
 
       - name: 🚀 Ejecutar bot principal
-        env:
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: python bot.py
+        env:  
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           META_USER_TOKEN: ${{ secrets.META_USER_TOKEN }}
           IG_BUSINESS_ACCOUNT: ${{ secrets.IG_BUSINESS_ACCOUNT }}
@@ -56,7 +62,6 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           # Activar modo Reel
           POST_REEL: ${{ secrets.POST_REEL }}
-        run: python bot.py
 
       # 🧹 Limpieza final
       - name: 🧽 Eliminar credenciales temporales
