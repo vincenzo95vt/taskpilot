@@ -77,7 +77,7 @@ def job():
     except Exception as e:
         err = traceback.format_exc()
         print('Error en job')
-        notify("❌ TaskPilot - Error crítico", f"{e}\n\nTraceback:\n{err}")
+        notify("❌ TaskPilot - Error crítico", f"{e}\n\nTraceback:\n{err}", url)
 
 
 if __name__ == "__main__":
