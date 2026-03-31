@@ -2,8 +2,7 @@ requests
 python-dotenv
 openai
 newspaper3k
-gspread
-oauth2client
+supabase
 schedule
 tweepy
 urllib3
@@ -14,3 +13,4 @@ feedparser
 lxml_html_clean
 cloudinary
 huggingface_hub
+streamlit

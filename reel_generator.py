@@ -49,35 +49,17 @@ def generate_script(article_text: str) -> list[dict]:
     Devuelve una lista de escenas:
     [{"narration": "texto narrado", "image_prompt": "prompt para DALL-E"}, ...]
     """
+    from supabase_client import get_prompt
+    prompt_data = get_prompt("reel_script")
+
+    messages = []
+    if prompt_data.get("system_prompt"):
+        messages.append({"role": "system", "content": prompt_data["system_prompt"]})
+    messages.append({"role": "user", "content": prompt_data["user_prompt"].format(content=article_text)})
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": """Eres el community manager de The SynthSight, empresa de software en Málaga.
-                Tono: directo, técnico pero accesible, con opinión propia. Frases cortas.
-                Tu tarea: convertir un artículo en un guión para un Reel de Instagram.
-                Divide el contenido en 3-5 escenas cortas.
-
-                IMPORTANTE:
-                - La ÚLTIMA escena siempre debe cerrar con una frase corta y definitiva, por ejemplo: 
-                "Esto es todo por hoy." o "¿Tú qué opinas? Déjalo en comentarios." o "Síguenos para más noticias tech."
-                - Nunca termines con una frase inconclusa o que suene a que hay más contenido después.
-                - Cada narración debe sonar completa por sí sola, con pausas naturales.
-
-                Responde SOLO con un JSON válido, sin backticks ni explicaciones:
-                [
-                {
-                    "narration": "texto que se narrará en voz alta (máx 2 frases)",
-                    "image_prompt": "prompt en inglés para DALL-E, estilo tech moderno, vertical 9:16"
-                }
-                ]"""
-            },
-            {
-                "role": "user",
-                "content": f"Convierte este artículo en guión de Reel:\n\n{article_text}"
-            }
-        ],
+        messages=messages,
         temperature=0.7,
     )
 

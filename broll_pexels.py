@@ -56,31 +56,18 @@ def extract_keywords(article_text: str) -> list[str]:
     """
     print("  🔍 Extrayendo keywords visuales con GPT...")
 
+    from supabase_client import get_prompt
+    prompt_data = get_prompt("broll_keywords")
+
+    messages = []
+    if prompt_data.get("system_prompt"):
+        messages.append({"role": "system", "content": prompt_data["system_prompt"]})
+    messages.append({"role": "user", "content": prompt_data["user_prompt"].format(content=article_text[:500])})
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": """Eres un director de vídeo. Tu tarea es extraer keywords
-                visuales específicas para buscar clips de b-roll en Pexels.
-
-                REGLAS:
-                - Devuelve SOLO un JSON array con 6 keywords en inglés
-                - Sé MUY específico: no uses "technology" o "artificial intelligence"
-                - Usa términos visuales concretos: "robot arm factory", "server room cables",
-                  "person typing laptop", "stock market screen", "satellite space", etc.
-                - Piensa en qué imágenes aparecerían en un telediario sobre esta noticia
-                - Varía entre primer plano, plano general y plano detalle
-
-                Responde SOLO con JSON, sin backticks:
-                ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5", "keyword6"]"""
-            },
-            {
-                "role": "user",
-                "content": f"Extrae keywords visuales para esta noticia:\n\n{article_text[:500]}"
-            }
-        ],
-        temperature=0.8,  # Alta temperatura para más variedad
+        messages=messages,
+        temperature=0.8,
     )
 
     raw = response.choices[0].message.content.strip()
