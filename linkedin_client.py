@@ -123,3 +123,112 @@ def post_to_linkedin(text, image_path=None):
                 print(f"Imagen temporal eliminada: {temp_file.name}")
             except Exception as cleanup_error:
                 print(f"No se pudo eliminar el archivo temporal: {cleanup_error}")
+
+"""
+Función para subir vídeos a LinkedIn
+Añade esto a tu linkedin_client.py
+"""
+
+def post_video_to_linkedin(text: str, video_path: str):
+    """
+    Sube un vídeo a LinkedIn y publica en la página de empresa.
+    """
+    try:
+        if not linkedin_access_token:
+            raise ValueError('Falta el token de LinkedIn')
+
+        headers = {
+            'Authorization': f"Bearer {linkedin_access_token}",
+            'X-Restli-Protocol-Version': '2.0.0',
+            'Content-Type': 'application/json',
+        }
+
+        author_urn = f"urn:li:organization:{linkedin_org_id}"
+        video_size = os.path.getsize(video_path)
+
+        # ── PASO 1: Inicializar subida del vídeo ──
+        print("📤 Iniciando subida de vídeo a LinkedIn...")
+        init_response = requests.post(
+            "https://api.linkedin.com/v2/assets?action=registerUpload",
+            headers=headers,
+            json={
+                "registerUploadRequest": {
+                    "recipes": ["urn:li:digitalmediaRecipe:feedshare-video"],
+                    "owner": author_urn,
+                    "serviceRelationships": [
+                        {
+                            "relationshipType": "OWNER",
+                            "identifier": "urn:li:userGeneratedContent"
+                        }
+                    ],
+                    "supportedUploadMechanism": ["SINGLE_REQUEST_UPLOAD"]
+                }
+            }
+        )
+
+        print(f"🔍 Init response: {init_response.status_code} {init_response.text}")
+
+        if init_response.status_code not in (200, 201):
+            raise Exception(f"Error iniciando subida: {init_response.text}")
+
+        upload_data   = init_response.json()
+        upload_url    = upload_data["value"]["uploadMechanism"][
+            "com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"
+        ]["uploadUrl"]
+        asset         = upload_data["value"]["asset"]
+
+        # ── PASO 2: Subir el archivo de vídeo ──
+        print("⬆️  Subiendo vídeo...")
+        with open(video_path, "rb") as video_file:
+            upload_response = requests.post(
+                upload_url,
+                data=video_file,
+                headers={
+                    "Authorization": f"Bearer {linkedin_access_token}",
+                    "Content-Type": "application/octet-stream",
+                }
+            )
+
+        print(f"🔍 Upload response: {upload_response.status_code}")
+
+        if upload_response.status_code not in (200, 201):
+            raise Exception(f"Error subiendo vídeo: {upload_response.text}")
+
+        # ── PASO 3: Publicar el post con el vídeo ──
+        print("📝 Publicando post con vídeo...")
+        post_body = {
+            "author": author_urn,
+            "lifecycleState": "PUBLISHED",
+            "specificContent": {
+                "com.linkedin.ugc.ShareContent": {
+                    "shareCommentary": {"text": text},
+                    "shareMediaCategory": "VIDEO",
+                    "media": [
+                        {
+                            "status": "READY",
+                            "media": asset,
+                            "title": {"attributes": [], "text": "The SynthSight"}
+                        }
+                    ]
+                }
+            },
+            "visibility": {
+                "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+            }
+        }
+
+        response = requests.post(
+            "https://api.linkedin.com/v2/ugcPosts",
+            headers=headers,
+            json=post_body
+        )
+
+        print(f"🔍 ugcPosts response: {response.status_code} {response.text}")
+
+        if response.status_code == 201:
+            return {"status": 200, "message": "Vídeo publicado correctamente en LinkedIn ✅"}
+        else:
+            return {"status": response.status_code, "message": f"Error al publicar: {response.text}"}
+
+    except Exception as e:
+        return {"status": 500, "message": f"Error inesperado: {e}"}

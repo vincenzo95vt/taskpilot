@@ -1,50 +1,84 @@
 from rss_client import get_rss_news
-from writer import rewrite_news
+from writer import rewrite_news, rewrite_for_linkedin
 from twitter_client import post_tweet, post_thread
 from google_client import get_unpublished_urls, sync_rss_to_sheet, get_next_unpublished, mark_as_published
 from scraper import extract_article_img, extract_text_from_url
 from utils.utils import format_caption
-from instagram_client import post_to_ig
-from linkedin_client import post_to_linkedin
-from notifier import notify
+from instagram_client import post_to_ig, post_reel_to_ig
+from datetime import datetime
+from linkedin_client import post_to_linkedin, post_video_to_linkedin
+from notifier import notify, send_telegram
+from reel_generator import generate_reel
 import traceback
+import os
 
-RSS_FEED = "https://www.genbeta.com/feedburner.xml" 
+RSS_FEED = [
+    # "https://www.genbeta.com/feedburner.xml",
+    "https://www.technologyreview.com/feed/",
+    # 'https://feeds.weblogssl.com/xataka2'
+    ]
+
+
+POST_REEL = os.getenv("POST_REEL", "false").lower() == "true"
+
+
 def job():
     try:
-        sync_rss_to_sheet(RSS_FEED, limit= 5)
+        sync_rss_to_sheet(RSS_FEED, limit=5)
         row, url, ws = get_next_unpublished()
+        
         if not url:
-            notify('TaskPilot', 'No hay URLs nuevas ni articulos en la hoja')
+            send_telegram('TaskPilot: No hay URLs nuevas ni artículos en la hoja')
             return
-        print('Selected article:' , url)
+
+        print('Selected article:', url)
         text = extract_text_from_url(url)
+
         if not text:
-            print("Failed to extract text from the article.")
+            send_telegram("Failed to extract text from the article.")
             return
-        rewritten = rewrite_news(title='' ,description=text)
+
+        rewritten = rewrite_news(title='', description=text)
         caption = rewritten.strip()
         caption = caption.replace('\r\n', '\n').replace('\r', '\n')
         caption = caption.replace('. ', '.\n\n')
-        image_url = extract_article_img(url=url)
-        result = {
-            "instagram": None,
-            "linkedin": None
-        }
-        result['linkedin'] = post_to_linkedin(text=caption, image_path=image_url)
-        print(result['linkedin'])
-        return
-        result['instagram'] = post_to_ig(caption=caption, image_url=image_url)
-        print(result)
+        caption_linkedin = rewrite_for_linkedin(text)
+        if POST_REEL:
+            # ── Flujo Reel ──────────────────────────────
+            print("🎬 Generando Reel...")
+            image_url = extract_article_img(url=url)
+            reel_path = generate_reel(text, image_url=image_url, output_path="/tmp/reel_output.mp4")
+            result = post_reel_to_ig(caption=caption, video_path=reel_path)
+            day = datetime.now().weekday()
+            if day in [1,4]:
+                print('🎬 Publicando vídeo en LinkedIn...')
+                result_linkedin = post_video_to_linkedin(caption, reel_path)
+            else:
+                print("📝 Publicando texto + imagen en LinkedIn...")
+                result_linkedin = post_to_linkedin(caption_linkedin, image_url)
+
+            send_telegram(result_linkedin)
+            # Limpiar vídeo temporal
+            if os.path.exists(reel_path):
+                os.remove(reel_path)
+        else:
+            image_url = extract_article_img(url=url)
+            result = post_to_ig(caption=caption, image_url=image_url)
+
+        # print(result)
         update_sheet = mark_as_published(ws, row)
         print(update_sheet)
-        notify( "✅ TaskPilot - Publicación realizada",
-            f"Artículo: {url}\n\nTweet:\n{result}", 
-            update_sheet)
+        notify(
+            "✅ TaskPilot - Publicación realizada",
+            f"Artículo: {url}\n\nResultado:\n{result}",
+            update_sheet
+        )
+
     except Exception as e:
         err = traceback.format_exc()
         print('Error en job')
-        notify("❌ TaskPilot - Error crítico", f"{e}\n\nTraceback:\n{err}")
+        notify("❌ TaskPilot - Error crítico", f"{e}\n\nTraceback:\n{err}", url)
+
 
 if __name__ == "__main__":
     job()
